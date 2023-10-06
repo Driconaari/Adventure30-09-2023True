@@ -70,24 +70,33 @@ public class Room {
         return items.remove(item);
     }
 
-    public Item getItemByName(String itemName) {
+    public Item getItemByName(String name) {
         for (Item item : items) {
-            if (item.getName().equalsIgnoreCase(itemName)) {
+            if (item.getName().equalsIgnoreCase(name)) {
                 return item;
             }
         }
-        return null;
+        return null; // Item not found
     }
 
-    public boolean hasEnemies() {
-        return !enemies.isEmpty();
-    }
+//enemy stuff
+
+
+    private List<Enemy> enemiesInRoom = new ArrayList<>();
 
     public void addEnemy(Enemy enemy) {
-        enemies.add(enemy);
+        enemiesInRoom.add(enemy);
     }
 
     public List<Enemy> getEnemies() {
-        return enemies;
+        return enemiesInRoom;
     }
+
+    public boolean hasEnemies() {
+        return !enemiesInRoom.isEmpty();
+    }
+
+    public void removeEnemy(Enemy enemy) {
+    }
+
 }

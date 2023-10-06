@@ -18,8 +18,8 @@ public class Map {
         Item roboticEye1 = new Item("Robotic Eye", "A weird-looking robotic eye.");
 
         // Create weapon instances
-        Weapon shinySword = new Weapon("Shiny Sword", "A sharp and shiny sword.", 10);
-        Weapon dagger = new Weapon("Dagger", "A small, sharp dagger.", 5); // Adjust attack power as needed
+        Weapon shinySword = new Weapon("Shiny Sword", 10); // Providing name and attack power
+        Weapon dagger = new Weapon("Dagger", 5); // Providing name and attack power
         RangedWeapon roboticEye = new RangedWeapon("Robotic Eye", "A weird-looking robotic eye.", 8);
 
         Item potion = new Item("Health Potion", "A red potion that restores health.");
@@ -39,14 +39,12 @@ public class Map {
 
 
 
-        //Add enemy
-        // Create an Enemy
+        // Create an Enemy/Enemies
+
         Room room1 = new Room("Room 1", "A small room with a goblin.");
 
-
-// Create a goblin and add it to Room 1
-        Enemy goblin = new Enemy("Goblin", "A Slim goblin with a Mighty Sword", 5, 50); // Adjust health and damage as needed
-        room1.addEnemy(goblin);
+        Enemy goblin1 = new Enemy("Goblin", "A Slim goblin with a Mighty Sword", 4, 6);
+        room1.addEnemy(goblin1);
 
 // Now, Room 1 contains a goblin
 
@@ -113,7 +111,6 @@ public class Map {
         startingRoom.addItem(new Item("Shiny Sword", "A sharp and shiny sword.")); // Add a new sword to the starting room
         return startingRoom;
     }
-
 
 }
 

@@ -25,15 +25,25 @@ public class Combat {
     }
 
 
-    private static int calculatePlayerDamage(Player player) {
-        // Calculate player damage based on player's weapon, abilities, etc.
-        // You can implement your own logic here.
-        return 0;
-    }
-
     private static void handleEnemyDefeat(Enemy enemy) {
         // Handle enemy defeat (e.g., remove from the room, provide rewards).
         // You can implement your own logic here.
+    }
+
+    public static int calculatePlayerDamage(Player player) {
+        int baseDamage = 10; // Adjust this value as needed
+
+        // Check if the player has an equipped weapon
+        if (player.getEquippedWeapon() != null) {
+            baseDamage += player.getEquippedWeapon().getDamage();
+        }
+
+        // You can also factor in other player attributes or abilities that affect damage.
+
+        // Calculate the total player damage
+        int totalDamage = baseDamage;
+
+        return totalDamage;
     }
 
 }
