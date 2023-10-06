@@ -39,14 +39,12 @@ public class Map {
 
 
 
-        //Add enemy
-        // Create an Enemy
+        // Create an Enemy/Enemies
+
         Room room1 = new Room("Room 1", "A small room with a goblin.");
 
-
-// Create a goblin and add it to Room 1
-        Enemy goblin = new Enemy("Goblin", "A Slim goblin with a Mighty Sword", 5, 50); // Adjust health and damage as needed
-        room1.addEnemy(goblin);
+        Enemy goblin1 = new Enemy("Goblin", "A Slim goblin with a Mighty Sword", 4, 20);
+        room1.addEnemy(goblin1);
 
 // Now, Room 1 contains a goblin
 

@@ -66,34 +66,15 @@ public class Player {
         return health > 0;
     }
 
-    public void eatFood(String foodName) {
-        // Check if the specified food item exists in the current room or inventory
-        Item foodItem = currentRoom.getItemByName(foodName);
-        //Item foodItem = inventory.getItemByName(foodName);
 
-
-        if (!(foodItem instanceof Food food)) {
-            return; // Use ordinal to get the integer value
+    public void increaseHealth(int amount) {
+        health += amount;
+        // Ensure health doesn't exceed a maximum value (e.g., 100)
+        if (health > 100) {
+            health = 100;
         }
-
-        int healthPoints = food.getHealthPoints();
-
-        if (healthPoints <= 0) {
-            return; // Use ordinal to get the integer value
-        }
-
-        // Increase the player's health by 10 points if it's an apple
-        if (food.getName().equalsIgnoreCase("apple")) {
-            int INITIAL_HEALTH = getHealth();
-            setHealth(INITIAL_HEALTH + 10);
-        }
-
-        // Remove the food item from the room or inventory
-        if (currentRoom.removeItem(food)) {
-        } else if (removeItem(food)) {
-        }
-
     }
+
 
     public void handleEnemyAttacks() {
         if (!enemies.isEmpty()) {
@@ -108,6 +89,7 @@ public class Player {
             }
         }
     }
+
 
     public void addEnemy(Enemy enemy) {
         enemies.add(enemy);
@@ -125,4 +107,28 @@ public class Player {
             System.out.println("You can't use that item."); // Handle the case where the item doesn't exist
         }
     }
+
+
+    public void eatFood(Food foodToEat) {
+        // Check if the specified food item exists in the player's inventory
+        Item foodItem = getItemByName(foodToEat.getName());
+
+        if (foodItem == null) {
+            System.out.println("You don't have " + foodToEat.getName() + " in your inventory.");
+        } else if (foodItem instanceof Food) {
+            int healthPoints = foodToEat.getHealthPoints();
+
+            if (healthPoints <= 0) {
+                System.out.println("You can't eat " + foodToEat.getName() + ".");
+            } else {
+                increaseHealth(healthPoints); // Increase the player's health
+                removeItem(foodItem); // Remove the food item from the player's inventory
+                System.out.println("You ate " + foodToEat.getName() + " and gained " + healthPoints + " health.");
+            }
+        } else {
+            System.out.println("You can't eat that.");
+        }
+    }
+
+
 }

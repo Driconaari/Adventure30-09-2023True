@@ -1,3 +1,5 @@
+import java.util.List;
+
 public class Adventure {
     private Room currentRoom;
     private static Map map;
@@ -5,6 +7,9 @@ public class Adventure {
 
     // Singleton instance
     private static Adventure instance;
+
+    List<Enemy> enemiesInRoom = currentRoom.getEnemies();
+
 
     // Private constructor to prevent direct instantiation
     Adventure(Map map, Player player) {
