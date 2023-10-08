@@ -23,15 +23,13 @@ public class Enemy {
         return health;
     }
 
-    public void takeDamage(int amount) {
-        health -= amount;
-
+    public void takeDamage(int damage) {
+        health -= damage;
         if (health <= 0) {
-            health = 0;
-            // Handle enemy defeat (e.g., remove from room)
+            // Enemy is defeated
+            health = 0; // Ensure health doesn't go negative
         }
     }
-
     public int attack() {
         return damage;
     }
@@ -43,4 +41,22 @@ public class Enemy {
         return health > 0;
     }
 
+    private int experiencePoints;
+
+    // Constructor to initialize the enemy's properties, including experiencePoints
+    public Enemy(String name, int health, int damage, int experiencePoints) {
+        // Initialize other properties...
+        this.experiencePoints = experiencePoints;
+    }
+
+    // Getter method for experiencePoints
+    public int getExperiencePoints() {
+        return experiencePoints;
+    }
+
+    public int getDamage() {
+        return damage;
+    }
+
+    // Other methods and properties of the Enemy class...
 }

@@ -1,3 +1,4 @@
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
@@ -5,18 +6,17 @@ import java.util.Scanner;
 
 public class UserInterface {
     private final Adventure adventure;
-    private final Player player;
+    private Player player;
     private final Scanner scanner;
+
     private Room currentRoom;
-    private final boolean[] triedDirections = {false, false, false, false}; // North, East, South, West
+
+    private Room startingRoom;
 
     public void startProgram() {
         // Start the game
         startGame();
     }
-
-
-
 
 
     //setter method
@@ -25,11 +25,12 @@ public class UserInterface {
     public UserInterface() {
         // Initialize the game components
         Map map = new Map(); // Create the map
-        Room startingRoom = map.getStartingRoom(); // Get the starting room from the map
-        player = new Player(startingRoom); // Create the player with the starting room
-        adventure = new Adventure(map, player); // Create the Adventure instance
+        startingRoom = map.getStartingRoom(); // Get the starting room from the map
+        player = new Player(startingRoom, 1000); // Create the player with the starting room and 1000 health
 
+        adventure = new Adventure(map, player); // Create the Adventure instance
         scanner = new Scanner(System.in);
+        currentRoom = adventure.getStartingRoom();
     }
 
 
@@ -39,6 +40,28 @@ public class UserInterface {
 
         if (player.isDefeated()) {
             handlePlayerDefeat(); // Call the method to handle game over or other actions
+        }
+    }
+
+    private void handlePlayerAttack(Enemy enemy) {
+        // Replace these values with the actual attacker's strength, weapon damage, and modifier
+        int attackerStrength = 10;
+        int weaponDamage = 8;
+        int modifier = 2;
+
+        // Calculate the player's damage using the calculateDamage method
+        int damage = player.calculateDamage(attackerStrength, weaponDamage, modifier);
+        //int damage = player.calculateDamage();
+
+        // Apply the calculated damage to the enemy
+        enemy.takeDamage(damage);
+
+        // Check if the enemy is defeated
+        if (enemy.isDefeated()) {
+            currentRoom.removeEnemy(enemy); // Remove the defeated enemy from the room
+            System.out.println("You have defeated the " + enemy.getName() + "!");
+        } else {
+            System.out.println("You attack the " + enemy.getName() + " and deal " + damage + " damage.");
         }
     }
 
@@ -69,16 +92,8 @@ public class UserInterface {
         }
     }
 
-
-    public UserInterface(Adventure adventure, Player player) {
-        this.adventure = adventure;
-        this.player = player;
-        scanner = new Scanner(System.in);
-        currentRoom = adventure.getStartingRoom();
-    }
-
     public void startGame() {
-        System.out.println("Welcome to the Adventure Game!\"You feel hungry and you are injured and you see a door to the east.\"");
+        System.out.println("Welcome to the Adventure Game! You feel hungry and you are injured and you see a door to the east.");
 
         // Ensure that currentRoom is initialized to the starting room
         if (currentRoom == null) {
@@ -88,12 +103,16 @@ public class UserInterface {
         System.out.println("You are in " + currentRoom.getName() + ".");
         System.out.println("Type 'help' for a list of commands.");
 
-        while (true) {
-            String input = scanner.nextLine().toLowerCase();
-            interpretCommand(input);
-        }
-    }
+        boolean gameRunning = true; // Add a flag to control the game loop
 
+        while (gameRunning) {
+            String input = scanner.nextLine().toLowerCase();
+            interpretCommand(input); // Update gameRunning based on the result of interpretCommand
+        }
+
+        // Game over or exit message
+        System.out.println("Game over. Thanks for playing!");
+    }
 
     private void interpretCommand(String input) {
         if (input.startsWith("take ") || input.startsWith("pick ")) {
@@ -130,22 +149,64 @@ public class UserInterface {
             }
         } else if (input.equals("health") || input.equals("hp")) {
             displayHealthStatus();
+        } else if (input.startsWith("attack ")) {
+            // Handle player's attack
+            String enemyName = input.substring(7).toLowerCase(); // Extract the enemy name from the input
+
+            // Check if the enemy exists in the room
+            Enemy enemy = currentRoom.getEnemyByName(enemyName);
+
+            if (enemy != null) {
+                // Perform the attack
+                handlePlayerAttack(enemy);
+            } else {
+                System.out.println("There is no such enemy here.");
+            }
+        } else if (input.equals("sneak")) {
+            // Handle player's attempt to sneak
+            handleSneak();
         } else {
             System.out.println("Invalid command. Type 'help' for a list of commands.");
+            if (input.startsWith("equip ")) {
+                String weaponName = input.substring(6); // Extract the weapon name
+                player.equipWeaponByName(weaponName);
+            }
         }
-
-        //check enemies for in room
-
-        List<Enemy> enemiesInRoom = adventure.getCurrentRoom().getEnemies();
-        if (!enemiesInRoom.isEmpty()) {
-            // Notify the player about the presence of enemies
-            System.out.println("You are being attacked by enemies!");
-            // Handle enemy attacks (you can implement this logic)
-            Combat.enemyAttacksPlayer(player, enemiesInRoom.get(0)); // Assuming there is only one enemy for simplicity
+        if (input.equals("unequip")) {
+            player.unequipWeaponByName();
         }
-
-
     }
+
+    private void handleSneak() {
+        // Generate a random number to determine the success of the sneak attempt
+        int diceRoll = rollDice(20); // You can adjust the number of sides as needed
+        System.out.println("You attempt to sneak past...");
+
+        if (diceRoll >= 10) {
+            System.out.println("You successfully sneak past the enemies!");
+            // Implement actions for a successful sneak here, if needed
+        } else {
+            System.out.println("You failed to sneak past the enemies!");
+            // Implement consequences of failing to sneak here, such as enemy attacks or other events
+        }
+    }
+
+
+    //check enemies for in room
+
+
+   /* List<Enemy> enemiesInRoom = currentRoom.getEnemies();
+
+    if(enemiesInRoom !=null&&!enemiesInRoom.isEmpty())
+
+    {
+        // Notify the player about the presence of enemies
+        System.out.println("You are being attacked by enemies!");
+        // Handle enemy attacks (you can implement this logic)
+        Combat.enemyAttacksPlayer(player, enemiesInRoom.get(0)); // Assuming there is only one enemy for simplicity
+    }
+
+    */
 
 
     private void displayItemsInRoom() {
@@ -177,6 +238,8 @@ public class UserInterface {
         String roomName = currentRoom.getName();
         StringBuilder directions = new StringBuilder();
 
+        boolean[] triedDirections = new boolean[4]; // Initialize with a length of 4
+
         if (!triedDirections[0]) {
             directions.append("North, ");
         }
@@ -189,7 +252,6 @@ public class UserInterface {
         if (!triedDirections[3]) {
             directions.append("West, ");
         }
-
         if (!directions.isEmpty()) {
             directions.delete(directions.length() - 2, directions.length());
             description += " There are doors to the " + directions + ".";
@@ -245,25 +307,18 @@ public class UserInterface {
         System.exit(0);
     }
 
-    /*private void handleGoCommand(String input) {
-        String direction = input.substring(3).trim();
-        Room nextRoom = getNextRoom(direction);
-
-        if (nextRoom != null) {
-            currentRoom = nextRoom;
-            displayRoomDescription();
-        } else {
-            System.out.println("You cannot go that way.");
-        }
-    }
-
-     */
     private void handleGoCommand(String input) {
         String direction = input.substring(3).trim();
         Room nextRoom = getNextRoom(direction);
 
         if (nextRoom != null) {
-            playerEntersNewRoom(nextRoom); // Call playerEntersNewRoom when the player enters a new room
+            player.setCurrentRoom(nextRoom); // Update the player's current room
+            displayRoomDescription(); // Display the description of the new room
+
+            // Check if there are enemies in the new room
+            if (nextRoom.hasEnemies()) {
+                enterRoomWithEnemies(nextRoom);
+            }
         } else {
             System.out.println("You cannot go that way.");
         }
@@ -310,12 +365,11 @@ public class UserInterface {
     }
 
 
-
 //Enemy interaction
 
 
     // Inside your code where the player enters a new room
-    public void playerEntersNewRoom(Room newRoom) {
+    private void playerEntersNewRoom(Room newRoom) {
         // Change the current room to the new room
         player.setCurrentRoom(newRoom);
 
@@ -324,46 +378,61 @@ public class UserInterface {
 
         if (!enemiesInRoom.isEmpty()) {
             // Notify the player about the presence of enemies
+            enterRoomWithEnemies(newRoom);
             System.out.println("You entered a room with enemies!");
 
             // Display the room description
             displayRoomDescription();
 
             // Prompt the player to choose an action
-            System.out.println("What will you do?");
-            System.out.println("1. Attack the enemy");
-            System.out.println("2. Try to sneak past");
+            boolean commandSuccessful = false; // Initialize to false
+            while (!commandSuccessful) {
+                System.out.println("What will you do?");
+                System.out.println("1. Attack the enemy");
+                System.out.println("2. Try to sneak past");
 
-            // Read the player's choice
-            int choice = scanner.nextInt();
+                // Read the player's choice
+                int choice = scanner.nextInt();
 
-            switch (choice) {
-                case 1:
-                    // Player chooses to attack the enemy
-                    int damage = Combat.calculatePlayerDamage(player); // Calculate player's damage using Combat class
-                    System.out.println("You attack the enemy and deal " + damage + " damage!");
+                switch (choice) {
+                    case 1 -> {
+                        // Player chooses to attack the enemy
+                        int damage = Combat.calculatePlayerDamage(player); // Calculate player's damage using Combat class
+                        System.out.println("You attack the enemy and deal " + damage + " damage!");
 
-                    // Get the list of enemies in the current room
-                    enemiesInRoom = currentRoom.getEnemies();
+                        // Get the list of enemies in the current room
+                        enemiesInRoom = currentRoom.getEnemies();
 
-                    if (!enemiesInRoom.isEmpty()) {
-                        // Apply the damage to the enemy
-                        Enemy enemy = enemiesInRoom.get(0); // Assuming there is only one enemy for simplicity
-                        enemy.takeDamage(damage);
+                        if (!enemiesInRoom.isEmpty()) {
+                            // Apply the damage to the enemy
+                            Enemy enemy = enemiesInRoom.get(0); // Assuming there is only one enemy for simplicity
+                            enemy.takeDamage(damage);
 
-                        // Check if the enemy is defeated
-                        if (enemy.isDefeated()) {
-                            // Remove defeated enemy from the room
-                            currentRoom.removeEnemy(enemy);
+                            // Check if the enemy is defeated
+                            if (enemy.isDefeated()) {
+                                // Remove defeated enemy from the room
+                                currentRoom.removeEnemy(enemy);
+                            }
                         }
+
+                        // Set commandSuccessful to true to exit the loop
+                        commandSuccessful = true;
                     }
-                    break;
-                case 2:
-                    // ... (previous code for trying to sneak past)
-                    break;
-                default:
-                    System.out.println("Invalid choice. You hesitate for a moment.");
-                    break;
+                    case 2 -> {
+                        // Player chooses to try to sneak past
+                        boolean sneakingSuccessful = sneakPastEnemy();
+                        if (sneakingSuccessful) {
+                            System.out.println("You successfully sneak past the enemy!");
+                        } else {
+                            System.out.println("You failed to sneak past the enemy!");
+                            // Implement consequences of failing to sneak here
+                        }
+
+                        // Set commandSuccessful to true to exit the loop
+                        commandSuccessful = true;
+                    }
+                    default -> System.out.println("Invalid choice. Try again.");
+                }
             }
         } else {
             // Handle the case where there are no enemies
@@ -374,7 +443,8 @@ public class UserInterface {
         // You can perform other actions related to entering the room here
     }
 
-    // sneak past enemy option with dice roll
+
+    //sneak past enemy option with dice roll
     private boolean sneakPastEnemy() {
         int diceRoll = rollDice(20); // Roll a 20-sided dice
         System.out.println("You roll a 20-sided dice and get: " + diceRoll);
@@ -388,6 +458,10 @@ public class UserInterface {
         return random.nextInt(sides) + 1; // Add 1 to avoid getting a 0
     }
 
+    int attackerStrength = 10; // Replace with the actual attacker's strength
+    int weaponDamage = 8;     // Replace with the actual weapon's damage
+    int modifier = 2;         // Replace with any applicable modifier
+
 
     public void enterRoomWithEnemies(Room room) {
         List<Enemy> enemiesInRoom = room.getEnemies();
@@ -397,31 +471,68 @@ public class UserInterface {
             System.out.println("You are being attacked by enemies!");
 
             // Start turn-based combat
-            while (!enemiesInRoom.isEmpty() && player.isAlive()) {
-                // Player's turn to attack
-                // You can implement player's attack logic here
-                Combat.playerAttacksEnemy(player, enemiesInRoom.get(0));
+            Iterator<Enemy> iterator = enemiesInRoom.iterator();
+            while (iterator.hasNext() && player.isAlive()) {
+                Enemy currentEnemy = iterator.next();
+                int playerDamage = player.calculateDamage(attackerStrength, weaponDamage, modifier); // Calculate player's damage
+                currentEnemy.takeDamage(playerDamage); // Apply damage to the enemy
+                System.out.println("You attack the enemy and deal " + playerDamage + " damage!");
 
                 // Check if the enemy is defeated
-                if (enemiesInRoom.get(0).isDefeated()) {
-                    // Remove defeated enemy from the room
-                    room.removeEnemy(enemiesInRoom.get(0));
-                }
-
-                // Enemy's turn to attack
-                // You can implement enemy's attack logic here
-                if (!enemiesInRoom.isEmpty() && player.isAlive()) {
-                    Combat.enemyAttacksPlayer(player, enemiesInRoom.get(0));
+                if (currentEnemy.isDefeated()) {
+                    // Remove defeated enemy using the iterator's remove method
+                    iterator.remove();
+                    System.out.println("You have defeated the enemy!");
                 }
             }
 
-            // Handle end of combat
-            if (player.isAlive()) {
-                System.out.println("You have defeated all enemies in the room!");
-            } else {
-                System.out.println("Game Over! You have been defeated.");
+// Enemy's turn to attack
+            if (!enemiesInRoom.isEmpty() && player.isAlive()) {
+                Enemy currentEnemy = enemiesInRoom.get(0); // Get the first enemy in the room
 
+                // Check if there are enemies in the room before attacking
+                if (!enemiesInRoom.isEmpty()) {
+                    int enemyDamage = currentEnemy.attack(); // Get enemy's damage
+                    player.takeDamage(enemyDamage); // Apply damage to the player
+                    System.out.println("The enemy attacks you and deals " + enemyDamage + " damage!");
+
+                    // Check if the player is defeated
+                    if (player.isDefeated()) {
+                        System.out.println("Game Over! You have been defeated.");
+                        return; // Exit the method or handle game over logic
+                    }
+
+                    // Check if the enemy is defeated
+                    if (currentEnemy.isDefeated()) {
+                        // Remove defeated enemy from the room
+                        room.removeEnemy(currentEnemy);
+                        enemiesInRoom.remove(0);
+                        System.out.println("You have defeated the enemy!");
+                    }
+                } else {
+                    System.out.println("There are no enemies in the room.");
+                }
             }
+
+
         }
     }
 }
+
+
+// Enemy's turn to attack
+                /*(if (!enemiesInRoom.isEmpty() && player.isAlive()) {
+                    Enemy currentEnemy = enemiesInRoom.get(0); // Get the first enemy in the room
+                    int enemyDamage = currentEnemy.attack(); // Get enemy's damage
+                    player.takeDamage(enemyDamage); // Apply damage to the player
+                    System.out.println("The enemy attacks you and deals " + enemyDamage + " damage!");
+
+                    // Check if the player is defeated
+                    if (player.isDefeated()) {
+                        System.out.println("Game Over! You have been defeated.");
+                    }
+
+                 */
+
+
+
