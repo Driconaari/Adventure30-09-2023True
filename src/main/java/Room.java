@@ -79,24 +79,60 @@ public class Room {
         return null; // Item not found
     }
 
-//enemy stuff
-
-
-    private List<Enemy> enemiesInRoom = new ArrayList<>();
+    // Enemy methods
 
     public void addEnemy(Enemy enemy) {
-        enemiesInRoom.add(enemy);
+        enemies.add(enemy);
     }
 
     public List<Enemy> getEnemies() {
-        return enemiesInRoom;
+        return enemies;
     }
 
     public boolean hasEnemies() {
-        return !enemiesInRoom.isEmpty();
+        return !enemies.isEmpty();
     }
 
     public void removeEnemy(Enemy enemy) {
+        enemies.remove(enemy);
     }
 
+    public Enemy getEnemyByName(String enemyName) {
+        for (Enemy enemy : enemies) {
+            if (enemy.getName().equalsIgnoreCase(enemyName)) {
+                return enemy;
+            }
+        }
+        return null; // Enemy not found in the room
+    }
+
+    public boolean hasConnection(String direction) {
+        switch (direction.toLowerCase()) {
+            case "north":
+                return north != null;
+            case "east":
+                return east != null;
+            case "south":
+                return south != null;
+            case "west":
+                return west != null;
+            default:
+                return false; // Invalid direction
+        }
+    }
+
+    public Room getConnectedRoom(String direction) {
+        switch (direction.toLowerCase()) {
+            case "north":
+                return north;
+            case "east":
+                return east;
+            case "south":
+                return south;
+            case "west":
+                return west;
+            default:
+                return null; // invalid direction or no connection
+        }
+    }
 }

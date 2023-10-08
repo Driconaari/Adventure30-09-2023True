@@ -1,26 +1,21 @@
-public class Weapon {
-    private static final Object attackPower = 2;
+public class Weapon extends Item{
+    private final Object attackPower = 2;
     private String description;
     private String name;
     private int damage;
 
 
-    public Weapon(String name, int damage) {
-        this.name = name;
-        this.damage = damage;
-        this(name, "A basic weapon.", attackPower);
-    }
-
-    // Getters and setters for name and damage
-
-    Weapon fist = new Weapon("Fist", 3); // Providing name "Fist" and attack power 3
+    //Weapon fist = new Weapon("Fist", "just bare hands",3); // Providing name "Fist" and attack power 3
 
     public Weapon(String name, String description, int damage) {
-        this.name = name;
-        this.description = description;
+        super(name, description); // Call the constructor of the superclass
         this.damage = damage;
     }
 
+
+    public int getDamage() {
+        return damage;
+    }
 
     public String getName() {
         return name;
@@ -30,9 +25,7 @@ public class Weapon {
         this.name = name;
     }
 
-    public int getDamage() {
-        return damage;
-    }
+
 
     public void setDamage(int damage) {
         this.damage = damage;

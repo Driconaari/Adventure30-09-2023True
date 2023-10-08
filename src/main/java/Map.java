@@ -1,8 +1,15 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class Map {
+    private List<Enemy> enemies;
+    private List<Item> items = new ArrayList<>();
+    // Add items to the list when you create them
 
 
     public Room buildMap() {
         // Create room objects and build the game map
+        Room room1 = new Room("Room 1", "A small room with a goblin.");
         Room room2 = new Room("Room 2", "A dimly lit room with a musty smell.");
         Room room3 = new Room("Room 3", "A large room with a high ceiling.");
         Room room4 = new Room("Room 4", "A mysterious room filled with strange artifacts.");
@@ -13,14 +20,15 @@ public class Map {
         Room room9 = new Room("Room 9", "A secret chamber containing a treasure chest.");
 
         // Create items for each room
+        // Create weapon instances
+        Item shinySword = new Weapon("Shiny Sword", "A sharp and shiny sword.", 10);
+        items.add(shinySword);
         Item sword1 = new Item("Shiny Sword", "A sharp and shiny sword.");
         Item dagger1 = new Item("Dagger", "A small, sharp dagger.");
         Item roboticEye1 = new Item("Robotic Eye", "A weird-looking robotic eye.");
-
-        // Create weapon instances
-        Weapon shinySword = new Weapon("Shiny Sword", 10); // Providing name and attack power
-        Weapon dagger = new Weapon("Dagger", 5); // Providing name and attack power
+        Weapon dagger = new Weapon("Dagger", "tough Dagger", 13); // Providing name and attack power
         RangedWeapon roboticEye = new RangedWeapon("Robotic Eye", "A weird-looking robotic eye.", 8);
+
 
         Item potion = new Item("Health Potion", "A red potion that restores health.");
         Item key = new Item("Golden Key", "A golden key with intricate engravings.");
@@ -38,13 +46,14 @@ public class Map {
         Item healthPotion = new Item("Health Potion", "A red potion that restores health.");
 
 
-
         // Create an Enemy/Enemies
 
-        Room room1 = new Room("Room 1", "A small room with a goblin.");
+        enemies = new ArrayList<>();
 
-        Enemy goblin1 = new Enemy("Goblin", "A Slim goblin with a Mighty Sword", 4, 6);
+
+        Enemy goblin1 = new Enemy("Goblin", "A Slim goblin with one very powerful arm", 40, 100);
         room1.addEnemy(goblin1);
+
 
 // Now, Room 1 contains a goblin
 
@@ -52,6 +61,7 @@ public class Map {
         // Add items to rooms
         room1.addItem(healthPotion);
         room1.addItem(sword1);
+        room1.addItem(apple);
         room2.addItem(dagger1);
         room3.addItem(roboticEye1);
 
@@ -95,21 +105,34 @@ public class Map {
         room7.setEast(room8);
         room7.setSouth(room9);
 
-        room8.setWest(room4);
-        room8.setWest(room7);
+        room8.setNorth(room4);
+        room8.setEast(room7);
+        room8.setSouth(room9);
 
         room9.setNorth(room6);
         room9.setEast(room5);
+        room9.setWest(room8);
 
         return room1;
-
     }
 
+
     public Room getStartingRoom() {
+        // Create the starting room
         Room startingRoom = new Room("Starting Room", "You feel hungry and you are injured and you see a door to the east.");
-        startingRoom.setEast(buildMap()); // Connect the starting room to Room 1
+
+        // Connect the starting room to other rooms in your map
+        startingRoom.setEast(buildMap()); // Connect east to Room 1 (the map)
         startingRoom.addItem(new Item("Shiny Sword", "A sharp and shiny sword.")); // Add a new sword to the starting room
+        // Add an apple (food item) to the starting room
+        Food apple = new Food("Apple", "A delicious red apple.", 10); // Here, 10 represents the health points gained from eating the apple.
+        startingRoom.addItem(apple);
+
         return startingRoom;
+    }
+
+    public List<Item> getItems() {
+        return items;
     }
 
 }
