@@ -97,9 +97,9 @@ public class Room {
         enemies.remove(enemy);
     }
 
-    public Enemy getEnemyByName(String enemyName) {
+    public Enemy getEnemyByName(String targetEnemyName) {
         for (Enemy enemy : enemies) {
-            if (enemy.getName().equalsIgnoreCase(enemyName)) {
+            if (enemy.getName().equalsIgnoreCase(targetEnemyName)) {
                 return enemy;
             }
         }
@@ -135,4 +135,6 @@ public class Room {
                 return null; // invalid direction or no connection
         }
     }
+
+
 }

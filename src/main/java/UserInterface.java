@@ -55,27 +55,33 @@ public class UserInterface {
         }
     }
 
-    private void handlePlayerAttack(Enemy enemy) {
-        // Replace these values with the actual attacker's strength, weapon damage, and modifier
-        int attackerStrength = 10;
-        int weaponDamage = 8;
-        int modifier = 2;
+    private void handlePlayerAttack(String enemyName) {
+        // Check if the enemy exists in the current room
+        Enemy enemy = currentRoom.getEnemyByName(enemyName.toLowerCase());
 
-        // Calculate the player's damage using the calculateDamage method
-        int damage = player.calculateDamage(attackerStrength, weaponDamage, modifier);
-        //int damage = player.calculateDamage();
+        if (enemy != null) {
+            // Replace these values with the actual attacker's strength, weapon damage, and modifier
+            int attackerStrength = 10;
+            int weaponDamage = 8;
+            int modifier = 2;
 
-        // Apply the calculated damage to the enemy
-        enemy.takeDamage(damage);
+            // Calculate the player's damage using the calculateDamage method
+            int damage = player.calculateDamage(attackerStrength, weaponDamage, modifier);
 
-        // Check if the enemy is defeated
-        if (enemy.isDefeated()) {
-            currentRoom.removeEnemy(enemy); // Remove the defeated enemy from the room
-            System.out.println("You have defeated the " + enemy.getName() + "!");
+            // Apply the calculated damage to the enemy
+            enemy.takeDamage(damage);
+
+            if (enemy.isDefeated()) {
+                currentRoom.removeEnemy(enemy); // Remove the defeated enemy from the room
+                System.out.println("You have defeated the " + enemy.getName() + "!");
+            } else {
+                System.out.println("You attack the " + enemy.getName() + " and deal " + damage + " damage.");
+            }
         } else {
-            System.out.println("You attack the " + enemy.getName() + " and deal " + damage + " damage.");
+            System.out.println("There is no such enemy here.");
         }
     }
+
 
     public void handlePlayerDefeat() {
         // Add code here to handle game over or other actions when the player is defeated.
@@ -210,19 +216,31 @@ public class UserInterface {
             }
         } else if (input.equals("health") || input.equals("hp")) {
             displayHealthStatus();
-        } else if (input.startsWith("attack ")) {
-            // Handle player's attack
-            String enemyName = input.substring(7).toLowerCase(); // Extract the enemy name from the input
+        } else if (input.equals("attack")) {
+            // Attempt to attack all enemies in the current room
+            List<Enemy> enemiesInRoom = currentRoom.getEnemies();
 
-            // Check if the enemy exists in the room
-            Enemy enemy = currentRoom.getEnemyByName(enemyName);
+            if (!enemiesInRoom.isEmpty()) {
+                for (Enemy enemy : enemiesInRoom) {
+                    // Perform the attack on each enemy
+                    handlePlayerAttack(enemy.getName()); // Pass the enemy's name as a string
+                }
+            } else if (input.startsWith("attack ")) {
+                // Handle player's attack
+                String enemyName = input.substring(7).toLowerCase(); // Extract the enemy name from the input
 
-            if (enemy != null) {
-                // Perform the attack
-                handlePlayerAttack(enemy);
-            } else {
-                System.out.println("There is no such enemy here.");
+                // Check if the enemy exists in the room
+                Enemy enemy = currentRoom.getEnemyByName(enemyName);
+
+                if (enemy != null) {
+                    // Perform the attack
+                    handlePlayerAttack(enemy.getName()); // Pass the enemy's name as a string
+                } else {
+                    System.out.println("There is no such enemy here.");
+                }
             }
+
+
         } else if (input.equals("sneak")) {
             // Handle player's attempt to sneak
             sneakPastEnemy();
@@ -237,6 +255,7 @@ public class UserInterface {
         if (input.equals("unequip")) {
             player.unequipWeaponByName();
         }
+
     }
 
 
@@ -282,6 +301,17 @@ public class UserInterface {
     }
 
     private void displayRoomDescription() {
+        System.out.println("You are in " + currentRoom.getName() + ".");
+        System.out.println(currentRoom.getDescription());
+
+        // Check if there are enemies in the room
+        List<Enemy> enemiesInRoom = currentRoom.getEnemies();
+        if (!enemiesInRoom.isEmpty()) {
+            System.out.println("You see the following enemies in the room:");
+            for (Enemy enemy : enemiesInRoom) {
+                System.out.println("- " + enemy.getName());
+            }
+        }
         String description = currentRoom.getDescription();
         String roomName = currentRoom.getName();
         StringBuilder directions = new StringBuilder();
@@ -434,7 +464,7 @@ public class UserInterface {
 
         if (!enemiesInRoom.isEmpty()) {
             // Notify the player about the presence of enemies
-            enterRoomWithEnemies(newRoom);
+            enterRoomWithEnemies(newRoom, "attack");
             System.out.println("You entered a room with enemies!");
 
             // Display the room description
@@ -520,58 +550,39 @@ public class UserInterface {
     int modifier = 2;         // Replace with any applicable modifier
 
 
-    public void enterRoomWithEnemies(Room room) {
+    public void enterRoomWithEnemies(Room room, String input) {
         List<Enemy> enemiesInRoom = room.getEnemies();
 
         if (!enemiesInRoom.isEmpty()) {
-            // Notify the player about the presence of enemies
-            System.out.println("You are being attacked by enemies!");
-
-            // Start turn-based combat
             Iterator<Enemy> iterator = enemiesInRoom.iterator();
-            while (iterator.hasNext() && player.isAlive()) {
-                Enemy currentEnemy = iterator.next();
-                int playerDamage = player.calculateDamage(attackerStrength, weaponDamage, modifier); // Calculate player's damage
-                currentEnemy.takeDamage(playerDamage); // Apply damage to the enemy
-                System.out.println("You attack the enemy and deal " + playerDamage + " damage!");
+            while (iterator.hasNext()) {
+                Enemy enemy = iterator.next();
+                // Perform the attack on each enemy
+                handlePlayerAttack("attack " + enemy.getName()); // Pass the enemy's name as a string
 
-                // Check if the enemy is defeated
-                if (currentEnemy.isDefeated()) {
-                    // Remove defeated enemy using the iterator's remove method
-                    iterator.remove();
-                    System.out.println("You have defeated the enemy!");
+                if (enemy.isDefeated()) {
+                    iterator.remove(); // Remove the defeated enemy from the collection
+                    System.out.println("You have defeated the " + enemy.getName() + "!");
                 }
             }
+        } else if (input.startsWith("attack ")) {
+            // Handle player's attack
+            String enemyName = input.substring(7).toLowerCase(); // Extract the enemy name from the input
 
-// Enemy's turn to attack
-            if (!enemiesInRoom.isEmpty() && player.isAlive()) {
-                Enemy currentEnemy = enemiesInRoom.get(0); // Get the first enemy in the room
+            // Check if the enemy exists in the room
+            Enemy enemy = room.getEnemyByName(enemyName);
 
-                // Check if there are enemies in the room before attacking
-                if (!enemiesInRoom.isEmpty()) {
-                    int enemyDamage = currentEnemy.attack(); // Get enemy's damage
-                    player.takeDamage(enemyDamage); // Apply damage to the player
-                    System.out.println("The enemy attacks you and deals " + enemyDamage + " damage!");
+            if (enemy != null) {
+                // Perform the attack
+                handlePlayerAttack("attack " + enemy.getName()); // Pass the enemy's name as a string
 
-                    // Check if the player is defeated
-                    if (player.isDefeated()) {
-                        System.out.println("Game Over! You have been defeated.");
-                        return; // Exit the method or handle game over logic
-                    }
-
-                    // Check if the enemy is defeated
-                    if (currentEnemy.isDefeated()) {
-                        // Remove defeated enemy from the room
-                        room.removeEnemy(currentEnemy);
-                        enemiesInRoom.remove(0);
-                        System.out.println("You have defeated the enemy!");
-                    }
-                } else {
-                    System.out.println("There are no enemies in the room.");
+                if (enemy.isDefeated()) {
+                    room.removeEnemy(enemy); // Remove the defeated enemy from the room
+                    System.out.println("You have defeated the " + enemy.getName() + "!");
                 }
+            } else {
+                System.out.println("There is no such enemy here.");
             }
-
-
         }
     }
 }
